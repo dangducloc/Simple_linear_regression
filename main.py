@@ -62,9 +62,9 @@ plt.figure(figsize=(10, 6))
 plt.grid(visible = True)
 
 # Training data
-plt.scatter(areas_train, prices_train, color='blue', label='Training Data')
+plt.scatter(areas_train, prices_train, color='blue',alpha = 0.2, label='Training Data')
 # Testing data
-plt.scatter(areas_test, prices_test, color='green', label='Testing Data')
+plt.scatter(areas_test, prices_test, color='green',alpha = 0.2, label='Testing Data')
 
 # Plot the regression line (use both training and test areas for a full line)
 plt.plot(areas_train, predicted_prices_train, color='red', label='Regression Line')
