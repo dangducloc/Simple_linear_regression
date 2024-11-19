@@ -20,7 +20,7 @@ class GetDataset:
             else:
                 continue
         return [prices,areas]
-
+#useage
 # g = GetDataset()
 # print(g.fomated_Data()[0])
 # print(g.fomated_Data()[1])

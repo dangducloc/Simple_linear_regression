@@ -3,77 +3,125 @@ from crawling_data import Crawler
 from sklearn.linear_model import LinearRegression   
 from Read_data import GetDataset
 from sklearn.model_selection import train_test_split
-import matplotlib.pyplot as plt
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.metrics import mean_absolute_error, mean_squared_error
+from visualize import Visualize
 
-# Load and format the dataset
-obj = GetDataset()
-datas = obj.fomated_Data()
-areas = np.array(datas[1], dtype=float).reshape(-1, 1)
-prices = np.array(datas[0], dtype=float).reshape(-1, 1)
-
-# Split the dataset into training and testing sets (80% train, 20% test)
-areas_train, areas_test, prices_train, prices_test = train_test_split(areas, prices, test_size=0.2, random_state=42)
-
-# Create the model
-model = LinearRegression()
-
-# Train the model on the training set
-model.fit(areas_train, prices_train)
-
-# Get the slope (m) and intercept (b)
-slope = model.coef_[0]
-intercept = model.intercept_
-print(f"Slope (m): {slope}")
-print(f"Intercept (b): {intercept}")
-print(f"Price = {slope} x Area + {intercept}")
-
-# Make predictions using the trained model
-predicted_prices_train = model.predict(areas_train)
-predicted_prices_test = model.predict(areas_test)
+class Main:
 
 
-# Calculate the R-squared score (coefficient of determination) on the test set
-test_score = model.score(areas_test, prices_test)
-print(f"R-squared score on the test set: {test_score}")
+    def __init__(self) -> None:
+        self.dataset = self.Get_Format_dataset()
+        self.model = self.Training_model()
 
-# Calculate and print error metrics for both training and test sets
-mae_train = mean_absolute_error(prices_train, predicted_prices_train)
-mse_train = mean_squared_error(prices_train, predicted_prices_train)
-rmse_train = np.sqrt(mse_train)
+    def Get_Format_dataset(self):
+        # Load and format the dataset
+        obj = GetDataset()
+        datas = obj.fomated_Data()
+        areas = np.array(datas[1], dtype=float).reshape(-1, 1)
+        prices = np.array(datas[0], dtype=float).reshape(-1, 1)
+        return [areas,prices]
+    
+    def Split_dataset (self):
+        dataset = self.Get_Format_dataset()
+        areas = dataset[0]
+        prices = dataset[1]
+        # Split the dataset into training and testing sets (80% train, 20% test)
+        areas_train, areas_test, prices_train, prices_test = train_test_split(areas, prices, test_size=0.2, random_state=42)
+        return {
+            "areas_train":areas_train, 
+            "areas_test":areas_test,
+            "prices_train":prices_train,
+            "prices_test":prices_test
+            }
 
-mae_test = mean_absolute_error(prices_test, predicted_prices_test)
-mse_test = mean_squared_error(prices_test, predicted_prices_test)
-rmse_test = np.sqrt(mse_test)
+    def Training_model (self):
+        data = self.Split_dataset()
+        areas_train = data["areas_train"]
+        prices_train = data["prices_train"]
+        model = LinearRegression().fit(areas_train, prices_train)
+        return model
 
-# Display the error metrics for both sets
-print("\nTraining Set Error Metrics:")
-print(f"MAE: {mae_train:.2f}")
-print(f"MSE: {mse_train:.2f}")
-print(f"RMSE: {rmse_train:.2f}")
+    def Get_solpe_intercept (self):
+        # Get the slope (m) and intercept (b)
+        slope = self.model.coef_[0]
+        intercept = self.model.intercept_
+        return {
+            "slope": slope[0],
+            "intercept":intercept[0],
+            "equation":f"y = {slope[0]}*x + {intercept[0]}"
+        }
 
-print("\nTest Set Error Metrics:")
-print(f"MAE: {mae_test:.2f}")
-print(f"MSE: {mse_test:.2f}")
-print(f"RMSE: {rmse_test:.2f}")
+    def Auto_Prediction (self):
+        # Make predictions using the trained model
+        data = self.Split_dataset()
+        areas_train = data["areas_train"]
+        areas_test = data["areas_test"]
+        predicted_prices_train = self.model.predict(areas_train)
+        predicted_prices_test = self.model.predict(areas_test)
+        return {
+            "predicted_test" : predicted_prices_test,
+            "predicted_train" : predicted_prices_train,
+        }
 
-# Plot the training data, testing data, and regression line
-plt.figure(figsize=(10, 6))
-plt.grid(visible = True)
+    def Prediction (self,area):
+        result = self.model.predict(np.array([area],dtype=float).reshape(-1, 1))
+        return result[0]
 
-# Training data
-plt.scatter(areas_train, prices_train, color='blue',alpha = 0.2, label='Training Data')
-# Testing data
-plt.scatter(areas_test, prices_test, color='green',alpha = 0.2, label='Testing Data')
+    def Rsquared_MAE_MSE (self):
+        data = self.Split_dataset()
+        # Calculate the R-squared score (coefficient of determination) on the test set
+        areas_test = data["areas_test"]
+        prices_test = data["prices_test"]
+        prices_train = data["prices_train"]
 
-# Plot the regression line (use both training and test areas for a full line)
-plt.plot(areas_train, predicted_prices_train, color='red', label='Regression Line')
+        test_score = self.model.score(areas_test, prices_test)
+        predicted = self.Auto_Prediction()
 
-# Add labels and title
-plt.xlabel('Area')
-plt.ylabel('Price')
-plt.title('Linear Regression: Price vs Area')
-plt.legend()
+        predicted_prices_train = predicted["predicted_train"] 
+        predicted_prices_test = predicted["predicted_test"]
 
-# Show the plot
-plt.show()
+        # Calculate and print error metrics for both training and test sets
+        mae_train = mean_absolute_error(prices_train, predicted_prices_train)
+        mse_train = mean_squared_error(prices_train, predicted_prices_train)
+
+        mae_test = mean_absolute_error(prices_test, predicted_prices_test)
+        mse_test = mean_squared_error(prices_test, predicted_prices_test)
+
+        return {
+            "r2":test_score,
+            "mae-train":mae_train,
+            "mse-train":mse_train,
+            "mae-test":mae_test,
+            "mse-test":mse_test
+        }
+
+    def Visualize (self):
+        data = self.Split_dataset()
+        areas_test = data["areas_test"]
+        areas_train = data["areas_train"]
+        prices_test = data["prices_test"]
+        prices_train = data["prices_train"]
+        predicted_train = self.Auto_Prediction()["predicted_train"]
+        Visualize().Visualzing(
+            x_test=areas_test,
+            x_train=areas_train,
+            y_test=prices_test,
+            y_train=prices_train,
+            predicted_y_train=predicted_train
+        )
+
+#useage
+m = Main()
+auto_predict = m.Auto_Prediction()
+print(auto_predict)
+print("===============================================================")
+predict = m.Prediction(150)
+print(predict)
+print("===============================================================")
+error_metrics = m.Rsquared_MAE_MSE()
+print(error_metrics)
+print("===============================================================")
+equation = m.Get_solpe_intercept()
+print(equation)
+print("===============================================================")
+m.Visualize()
