@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from visualize import Visualize
 
-class Main:
+class Prediction:
 
 
     def __init__(self) -> None:
@@ -111,17 +111,18 @@ class Main:
         )
 
 #useage
-m = Main()
-auto_predict = m.Auto_Prediction()
-print(auto_predict)
-print("===============================================================")
-predict = m.Prediction(150)
-print(predict)
-print("===============================================================")
+m = Prediction()
+# auto_predict = m.Auto_Prediction()
+# print(auto_predict)
+# print("===============================================================")
+# a = float(input("new_area: "))
+# predict = m.Prediction(a)
+# print(predict)
+# print("===============================================================")
 error_metrics = m.Rsquared_MAE_MSE()
 print(error_metrics)
 print("===============================================================")
 equation = m.Get_solpe_intercept()
 print(equation)
 print("===============================================================")
-m.Visualize()
+# m.Visualize()
